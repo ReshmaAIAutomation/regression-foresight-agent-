@@ -1,0 +1,8 @@
+{
+  "id": "RULE-101",
+  "name": "mzAddChannelWrapper",
+  "class": "Rule-Decision-Strategy",
+  "functionalArea": "Email",
+  "references": ["RULE-102"],
+  "conditions": ["Channel == 'Email'"]
+}

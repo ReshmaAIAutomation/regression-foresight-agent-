@@ -1,0 +1,23 @@
+{
+  "name": "regression-foresight-agent",
+  "version": "1.0.0",
+  "description": "Enterprise-Grade Test Scoping & PR Regression Foresight Agent",
+  "main": "dist/agent.js",
+  "scripts": {
+    "build": "tsc",
+    "index-rules": "python rule-indexer/rules_indexer.py",
+    "run-agent": "ts-node src/agent.ts",
+    "setup-jira": "node rule-indexer/setup_jira_automation.js",
+    "test": "playwright test"
+  },
+  "dependencies": {
+    "@octokit/rest": "^22.0.1",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.42.1",
+    "@types/node": "^20.11.24",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

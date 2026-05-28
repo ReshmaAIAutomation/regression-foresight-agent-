@@ -1,0 +1,8 @@
+{
+  "id": "RULE-102",
+  "name": "CashbackEligibility",
+  "class": "Rule-Decision-Strategy",
+  "functionalArea": "Eligibility",
+  "references": [],
+  "conditions": ["Age >= 21", "CreditScore >= 720"]
+}
