@@ -1,0 +1,50 @@
+name: 🚀 Regression Foresight Agent CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  foresight-scoping:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📂 Checkout Codebase
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # Fetches the PR commits so we can perform 'git diff HEAD~1'
+
+      - name: 🐍 Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 🛠️ Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r rule-indexer/requirements.txt
+
+      - name: 🗄️ Compile Rule Parquet Indexes
+        run: |
+          python rule-indexer/rules_indexer.py
+
+      - name: 🟢 Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 📦 Install Node Dependencies
+        run: |
+          npm install
+
+      - name: 🚀 Run Regression Foresight Agent
+        env:
+          # Extract repository information dynamically from GitHub Actions context
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          # Executes the 11-step TypeScript orchestrator which reads env variables 
+          # and automatically posts the two Comments onto the active Pull Request!
+          npx ts-node src/agent.ts

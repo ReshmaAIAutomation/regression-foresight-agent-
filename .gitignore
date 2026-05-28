@@ -1,0 +1,21 @@
+# Node dependencies
+node_modules/
+npm-debug.log*
+
+# Python environment
+.venv/
+__pycache__/
+*.pyc
+
+# Local credentials
+.env
+.env.local
+
+# Build outputs & generated plans
+dist/
+.index/
+mock-pr-diff.txt
+
+# OS system files
+.DS_Store
+Thumbs.db

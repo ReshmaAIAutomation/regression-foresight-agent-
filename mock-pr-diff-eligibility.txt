@@ -1,0 +1,9 @@
+diff --git a/rules/CashbackEligibility.json b/rules/CashbackEligibility.json
+index a5b6c7d..e9f8g7h 100644
+--- a/rules/CashbackEligibility.json
++++ b/rules/CashbackEligibility.json
+@@ -5,2 +5,2 @@
+-  "references": [],
+-  "conditions": ["Age >= 21", "CreditScore >= 720"]
++  "references": [],
++  "conditions": ["Age >= 21", "CreditScore >= 750"]

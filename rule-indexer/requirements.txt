@@ -1,0 +1,6 @@
+duckdb>=0.10.0
+pandas>=2.0.0
+pyarrow>=14.0.0
+polars>=0.20.0
+pymongo>=4.0.0
+requests>=2.30.0
