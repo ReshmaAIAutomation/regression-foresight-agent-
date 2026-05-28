@@ -4,5 +4,8 @@
   "class": "Rule-Decision-Strategy",
   "functionalArea": "Eligibility",
   "references": [],
-  "conditions": ["Age >= 21", "CreditScore >= 720"]
+  "conditions": [
+    "Age > 25",
+    "CreditScore > 750"
+  ]
 }
