@@ -1,6 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 interface ParquetResult {
   rule_id: string;
@@ -25,8 +28,8 @@ class RegressionForesightAgent {
   public async executeForesightPipeline(): Promise<void> {
     // Read parameters from environment (populated automatically by GitHub Actions)
     const prNumber = process.env.PR_NUMBER ? parseInt(process.env.PR_NUMBER) : 26839;
-    const repoOwner = process.env.REPO_OWNER || 'reshma-pathan';
-    const repoName = process.env.REPO_NAME || 'regression-foresight-agent';
+    const repoOwner = process.env.REPO_OWNER || 'ReshmaAIAutomation';
+    const repoName = process.env.REPO_NAME || 'regression-foresight-agent-';
     const githubToken = process.env.GITHUB_TOKEN;
 
     console.log(`\n======================================================`);
