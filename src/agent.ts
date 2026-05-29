@@ -242,14 +242,6 @@ index d7a8b9c..e3f4g5h 100644
     ];
   }
 
-  private mapAgileStudioStories(scenarios: any[]) {
-    const mockAgileStudioDb = ["TEST-212841", "TEST-212842", "TEST-212849"];
-    return scenarios.map((s, idx) => ({
-      ...s,
-      testId: mockAgileStudioDb[idx],
-      status: "🟡 To Run"
-    }));
-  }
 
   private compilePRComment(prNumber: number, area: string, ruleName: string, testPlan: any[], suites: any[]): string {
     let md = `# 🚀 Regression Foresight Dashboard - PR #${prNumber}\n\n`;

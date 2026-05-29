@@ -39,7 +39,7 @@ graph TD
 - 🧠 **RAG Vector Search & Traceability**: Integrates **MongoDB Atlas Vector Search** with **Mistral AI Embeddings** to semantically map plain-English Jira requirements with exact automated spec tags in sub-milliseconds.
 - 🧪 **Functional Scenario Generator**: Automatically generates 5-8 highly target scenarios per impacted area, complete with expected outcomes and keywords.
 - 🎯 **BDD & Playwright Tag Scanner**: Scans automation suites for matching annotations (`@cismoke`, `@ciregression`) to selectively filter regression suites.
-- 📊 **Unified PR Comment Dashboard**: Consolidates Change Impact, Jira requirements mapping, Playwright coverage check, and instant CI run trigger buttons into one beautiful, recruiter-ready comment card.
+- 📊 **Unified PR Comment Dashboard**: Consolidates Change Impact, Jira requirements mapping, Playwright coverage check, and instant CI run trigger buttons into one beautiful, actionable PR comment card.
 
 ---
 
