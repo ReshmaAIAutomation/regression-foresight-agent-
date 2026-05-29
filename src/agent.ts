@@ -27,7 +27,7 @@ class RegressionForesightAgent {
    */
   public async executeForesightPipeline(): Promise<void> {
     // Read parameters from environment (populated automatically by GitHub Actions)
-    const prNumber = process.env.PR_NUMBER ? parseInt(process.env.PR_NUMBER) : 26839;
+    const prNumber = process.env.PR_NUMBER ? parseInt(process.env.PR_NUMBER) : 1;
     const repoOwner = process.env.REPO_OWNER || 'ReshmaAIAutomation';
     const repoName = process.env.REPO_NAME || 'regression-foresight-agent-';
     const githubToken = process.env.GITHUB_TOKEN;
@@ -67,7 +67,7 @@ class RegressionForesightAgent {
     const scenarios = this.buildTestScenarios(area);
     
     // Parse story key from diff branch or default
-    const linkedStoryId = process.env.PR_NUMBER ? `STORY-${process.env.PR_NUMBER}` : 'PROJ-101';
+    const linkedStoryId = process.env.PR_NUMBER ? `STORY-${process.env.PR_NUMBER}` : 'KAN-1';
     const { JiraClient } = require('./jira-client');
     const jiraClient = new JiraClient();
     const testCases = await jiraClient.fetchTestCasesFromJira(linkedStoryId);
@@ -118,28 +118,44 @@ class RegressionForesightAgent {
       }
     }
 
-    // Step 8: Compile and generate PR Comment 1 (Test Plan)
-    const comment1Markdown = this.compilePRComment1(prNumber, testPlan, area);
-    this.saveLocalComment('comment1-test-plan.md', comment1Markdown);
-
-    // Step 9-10: Scan E2E Playwright feature annotations using RAG mapped entries
+    // Step 8-10: Scan E2E Playwright feature annotations using RAG mapped entries
     console.log(`[Step 9-10] Scanning E2E automation codebase for tagged suites...`);
-    const automationSuites = testPlan.map(p => ({
-      feature: path.basename(p.scriptPath),
-      framework: 'Playwright',
-      tag: p.playwrightTag
-    }));
+    const automationSuites = testPlan.map(p => {
+      const fullPath = path.join(this.baseDir, p.scriptPath);
+      let existsInGit = false;
+      let hasTag = false;
 
-    // Step 11: Compile PR Comment 2 & selective Groovy CI execution command
-    const { comment2Markdown, groovyProfile } = this.compilePRComment2(prNumber, area, primaryRule.rule_name, automationSuites);
-    this.saveLocalComment('comment2-regression.md', comment2Markdown);
-    fs.writeFileSync(path.join(this.baseDir, 'dist', 'ValidateXxxTests.groovy'), groovyProfile.trim(), 'utf-8');
+      if (fs.existsSync(fullPath)) {
+        existsInGit = true;
+        const fileContent = fs.readFileSync(fullPath, 'utf-8');
+        if (fileContent.includes(p.playwrightTag)) {
+          hasTag = true;
+        }
+      }
+
+      console.log(`   --> Scanning Git File: "${p.scriptPath}" | Exists: ${existsInGit} | Tag "${p.playwrightTag}" Found: ${hasTag}`);
+
+      return {
+        feature: path.basename(p.scriptPath),
+        framework: 'Playwright',
+        tag: p.playwrightTag,
+        verified: existsInGit && hasTag ? '✅ Verified in Git' : '❌ Tag Missing in Git'
+      };
+    });
+
+    // Deduplicate the suites by tag + feature so we don't list the same script twice
+    const uniqueSuites = automationSuites.filter((value, index, self) =>
+      self.findIndex(s => s.feature === value.feature && s.tag === value.tag) === index
+    );
+
+    // Step 11: Compile and generate Single Unified PR Comment Dashboard
+    const unifiedCommentMarkdown = this.compilePRComment(prNumber, area, primaryRule.rule_name, testPlan, uniqueSuites);
+    this.saveLocalComment('foresight-dashboard.md', unifiedCommentMarkdown);
 
     // --- LIVE GITHUB INTEGRATION LOOP ---
     if (githubToken) {
       console.log(`\n[GitHub] Active GITHUB_TOKEN detected. Posting comments directly to GitHub PR #${prNumber}...`);
-      await this.publishCommentToGitHub(prNumber, repoOwner, repoName, githubToken, comment1Markdown);
-      await this.publishCommentToGitHub(prNumber, repoOwner, repoName, githubToken, comment2Markdown);
+      await this.publishCommentToGitHub(prNumber, repoOwner, repoName, githubToken, unifiedCommentMarkdown);
     } else {
       console.log(`\n[GitHub] No GITHUB_TOKEN detected. Skipping live GitHub PR posting.`);
       console.log(`[GitHub] Review mock PR comments generated locally inside the 'dist/' folder.`);
@@ -235,59 +251,52 @@ index d7a8b9c..e3f4g5h 100644
     }));
   }
 
-  private compilePRComment1(prNumber: number, testPlan: any[], area: string): string {
-    let md = `## 🚀 CDH Functional Test Plan - PR #${prNumber}\n\n`;
-    md += `Given the altered rule patterns, our foresight agent compiled this targeted validation checkpoint list:\n\n`;
-    md += `| # | CDH Area | Scenario | Expected Outcome | Agile Studio Story | Status |\n`;
+  private compilePRComment(prNumber: number, area: string, ruleName: string, testPlan: any[], suites: any[]): string {
+    let md = `# 🚀 Regression Foresight Dashboard - PR #${prNumber}\n\n`;
+    md += `This automated validation dashboard outlines the functional change impact and dynamic test scoping compiled for this Pull Request.\n\n`;
+
+    // 1. Change Impact Analysis
+    md += `### 🟥 1. Change Impact Analysis\n`;
+    md += `| Impacted Area | Impact Level | Reason |\n`;
+    md += `| :--- | :---: | :--- |\n`;
+    md += `| ${area} | 🔴 **HIGH** | Business Rule Strategy \`${ruleName}\` was modified. |\n\n`;
+    md += `---\n\n`;
+
+    // 2. Targeted Functional Test Plan
+    md += `### 📋 2. Targeted Functional Test Plan\n`;
+    md += `Given the altered rule patterns, our foresight agent compiled this targeted validation checkpoint list mapping to JIRA requirements:\n\n`;
+    md += `| # | Functional Area | Scenario | Expected Outcome | Jira Story ID | Status |\n`;
     md += `| :--- | :--- | :--- | :--- | :---: | :---: |\n`;
-    
     testPlan.forEach(p => {
       md += `| ${p.id} | ${area} | ${p.scenario} | ${p.expected} | **${p.testId}** | ${p.status} |\n`;
     });
+    md += `\n---\n\n`;
 
-    md += `\n*Post Comment 1 executed via GitHub Octokit API • Build by Reshma Pathan*\n`;
-    return md;
-  }
-
-  private scanAutomationSuites(area: string) {
-    return [
-      { feature: "03CreateAndEditEmailTreatment.feature", framework: "Selenium", tag: "@TC-301 @ciregression" },
-      { feature: "04EmailArbitrationValidation.spec.ts", framework: "Playwright", tag: "@TC-402 @cismoke" }
-    ];
-  }
-
-  private compilePRComment2(prNumber: number, area: string, ruleName: string, suites: any[]) {
-    let md = `## 🔍 Impact Analysis & Automation Scoping - PR #${prNumber}\n\n`;
-    md += `### 🟥 Impacted Business Areas\n`;
-    md += `| Area | Impact Level | Reason |\n`;
-    md += `| :--- | :---: | :--- |\n`;
-    md += `| ${area} | 🔴 **HIGH** | Pega Decision Strategy Rule \`${ruleName}\` was modified. |\n\n`;
-
-    md += `### 🧪 Scoped Automation Coverage\n`;
-    md += `The agent detected existing test coverage tagged inside Cucumber features and Playwright files:\n\n`;
-    md += `| Feature File | Test Framework | Scoped Tags |\n`;
-    md += `| :--- | :--- | :--- |\n`;
-    
+    // 3. Scoped Automation Coverage
+    md += `### 🧪 3. Scoped Automation Coverage\n`;
+    md += `The agent dynamically scanned your Git codebase and verified matching automated Playwright spec scripts:\n\n`;
+    md += `| Feature File | Test Framework | Scoped Tags | Git Verification |\n`;
+    md += `| :--- | :--- | :--- | :---: |\n`;
     suites.forEach(s => {
-      md += `| \`${s.feature}\` | ${s.framework} | \`${s.tag}\` |\n`;
+      md += `| \`${s.feature}\` | ${s.framework} | \`${s.tag}\` | ${s.verified} |\n`;
     });
+    md += `\n---\n\n`;
 
-    const tagsArray = suites.map(s => s.tag.split(' ')[1] || '@cismoke');
-    const groovyProfile = `
-// Selective CI Test Execution Profile
-// Copy-paste to trigger targeted pipeline validation
-class ValidateEmailTests {
-    static void main(String[] args) {
-        println "[CI] Scoped regression execution active: Running tags ${tagsArray.join(' OR ')}"
-    }
-}
-    `;
+    // 4. Playwright Execution Console
+    const tagsString = suites.map(s => s.tag).join('|');
+    md += `### ⚡ 4. Playwright Execution Console\n\n`;
+    md += `Click this green button to trigger the automated test runner in the cloud (GitHub Actions) to validate this PR:\n\n`;
+    md += `[![▶️ RUN SCOPED TESTS](https://img.shields.io/badge/%E2%96%B6%EF%B8%8F_RUN_SCOPED_TESTS-30c85c?style=for-the-badge&logo=playwright&logoColor=white)](https://github.com/ReshmaAIAutomation/regression-foresight-agent-/actions)\n\n`;
+    md += `#### 🤖 GitOps Bot Trigger (Chat-Ops)\n`;
+    md += `Comment **\`/run-scoped-tests\`** in this PR thread to automatically trigger the live pipeline run!\n\n`;
+    md += `#### 💻 Local Developer Command (Visual UI Mode)\n`;
+    md += `\`\`\`bash\n`;
+    md += `npx playwright test --grep "${tagsString}" --ui\n`;
+    md += `\`\`\`\n\n`;
+    md += `---\n`;
+    md += `*Post Comment executed via GitHub Octokit API • Build by Reshma Pathan*\n`;
 
-    md += `\n### ⚡ Groovy CI Execution Command (Copy-Paste Ready)\n`;
-    md += `\`\`\`groovy\n${groovyProfile}\`\`\`\n`;
-    md += `\n*Post Comment 2 executed via GitHub Octokit API • Build by Reshma Pathan*\n`;
-
-    return { comment2Markdown: md, groovyProfile };
+    return md;
   }
 
   private saveLocalComment(filename: string, content: string): void {

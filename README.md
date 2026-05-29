@@ -8,7 +8,7 @@
 **Regression Foresight Agent** is a cutting-edge quality engineering agent designed to automate change-impact mapping and targeted E2E automation runs in modern software delivery pipelines. 
 
 Re-engineered from enterprise structures, this public model consists of two core components working in tandem:
-1. **Rule Indexer (`ask-pega-dev` equivalent)**: A Python-based database compiler that deserializes metadata-driven business rules (JSON) and registers them into ultra-efficient **Parquet database tables** using Pandas/PyArrow/Polars.
+1. **Rule Indexer**: A Python-based database compiler that deserializes metadata-driven business rules (JSON) and registers them into ultra-efficient **Parquet database tables** using Pandas/PyArrow/Polars.
 2. **Orchestrator Agent**: A TypeScript/Node.js engine that intercepts Pull Request diffs, queries the Parquet tables via **DuckDB SQL** to trace code dependencies, maps the changes to functional domains, drafts targeted test scenarios, scans playwirght/BDD automation tagging, publishes two structured comments back to the PR, and outputs selective CI runners.
 
 ---
@@ -76,7 +76,7 @@ npm run run-agent
 
 - `rule-indexer/`
   - `requirements.txt`: Python libraries (`duckdb, pandas, pyarrow, polars`).
-  - `pega_deserializer.py`: Decodes raw rules metadata.
+  - `metadata_deserializer.py`: Decodes raw rules metadata.
   - `rules_indexer.py`: Compiles JSON rules into Parquet database tables.
   - `query.py`: Executes DuckDB SQL joins on rule dependency parameters.
 - `src/`

@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
-from pega_deserializer import RuleDeserializer
+from metadata_deserializer import RuleDeserializer
 
 class RulesIndexer:
     def __init__(self, rules_dir: str, output_dir: str):
