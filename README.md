@@ -9,7 +9,7 @@
 
 Re-engineered from enterprise structures, this public model consists of two core components working in tandem:
 1. **Rule Indexer**: A Python-based database compiler that deserializes metadata-driven business rules (JSON) and registers them into ultra-efficient **Parquet database tables** using Pandas/PyArrow/Polars.
-2. **Orchestrator Agent**: A TypeScript/Node.js engine that intercepts Pull Request diffs, queries the Parquet tables via **DuckDB SQL** to trace code dependencies, maps the changes to functional domains, drafts targeted test scenarios, scans playwirght/BDD automation tagging, publishes two structured comments back to the PR, and outputs selective CI runners.
+2. **Orchestrator Agent**: A TypeScript/Node.js engine that intercepts Pull Request diffs, queries the Parquet tables via **DuckDB SQL** to trace code dependencies, maps the changes to functional domains, drafts targeted test scenarios, scans Playwright/BDD automation tagging, and publishes a single, unified visual dashboard comment directly to the PR, complete with Playwright execution buttons and local developer triggers.
 
 ---
 
@@ -22,11 +22,10 @@ graph TD
     C -->|DuckDB SQL Joins| D[(Parquet Rules Database<br>.index/rules_myproject.parquet)]
     C -->|Traces| E[Rule Dependencies]
     B -->|Phase 3: Detects| F[Functional Domains & Areas]
-    B -->|Phase 4A: Drafts| G[Focused Testing Scenarios]
-    B -->|Phase 4B: Queries| H[Agile Stories / Jira IDs]
-    B -->|Phase 5: Posts| I[Comment 1: Functional Test Plan Table]
-    B -->|Phase 6: Scans| J[Automation Codebase specs/feature tags]
-    B -->|Phase 7: Generates| K[Comment 2: Impact Summary + ValidateXxx.groovy]
+    B -->|Phase 4: Queries| G[Jira Requirements & RAG Test Cases]
+    B -->|Phase 5: Scans| H[Playwright Codebase for Tags]
+    B -->|Phase 6: Generates| I[Unified Dashboard Comment]
+    I -->|Phase 7: Triggers| J[GitHub Actions CI / Local Playwright Runner]
 ```
 
 ---
@@ -37,7 +36,7 @@ graph TD
 - 🗄️ **Parquet & DuckDB Scoper**: Indexes application components and executes high-speed relational joins on rules metadata in memory, mapping upstream modifications to downstream dependencies.
 - 🧪 **Functional Scenario Generator**: Automatically generates 5-8 highly target scenarios per impacted area, complete with expected outcomes and keywords.
 - 🎯 **BDD & Playwright Tag Scanner**: Scans automation suites for matching annotations (`@cismoke`, `@ciregression`) to selectively filter regression suites.
-- 📊 **Dual-Comment PR Exporter**: Automatically prints Comment 1 (Test Plan & Agile Story IDs) and Comment 2 (Existing automation coverage & Groovy pipelines) locally or directly onto GitHub.
+- 📊 **Unified PR Comment Dashboard**: Consolidates Change Impact, Jira requirements mapping, Playwright coverage check, and instant CI run trigger buttons into one beautiful, recruiter-ready comment card.
 
 ---
 
@@ -83,7 +82,7 @@ npm run run-agent
   - `agent.ts`: The main orchestrator script executing the 11-step pipeline.
 - `mock-rules/`: JSON metadata files representing business eligibility strategies.
 - `tests/`: BDD Cucumber or Playwright E2E automation suites.
-- `dist/`: Locally generated PR markdown comment templates and Groovy pipeline scripts.
+- `dist/`: Locally generated PR markdown comment templates (e.g., `foresight-dashboard.md`).
 - `SKILL.md`: The agent's step-by-step instruction manual.
 
 ---
